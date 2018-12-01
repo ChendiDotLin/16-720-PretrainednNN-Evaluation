@@ -65,10 +65,15 @@ print(len(testset_loader))
 
 optimizer = optim.SGD(model.parameters(), lr=0.00005, momentum=0.7)
 
-trainLoss = []
-trainAcc = []
-
 start_time = time()
+
+# saved items
+EP = []
+TRAIN_LOSS = []
+TRAIN_ACC = []
+TEST_LOSS = []
+TEST_ACC = []
+TIMES = []
 
 def train(epoch, log_interval=5):
     iteration = 0
@@ -102,6 +107,7 @@ def train(epoch, log_interval=5):
                 pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
                 correct += pred.eq(target.view_as(pred)).sum().item()
         train_acc = correct / len(trainset_loader.dataset)
+        train_loss /= len(trainset_loader.dataset)
 
         print('\nTrain set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
             train_loss, correct, len(trainset_loader.dataset),
@@ -109,7 +115,14 @@ def train(epoch, log_interval=5):
 
         test_loss, test_acc = test()
         cur_time = time() - start_time
-        np.savez(saved_filename, epoch=ep, train_loss=train_loss, train_acc= train_acc, test_loss=test_loss, test_acc=test_acc, time=cur_time)
+        EP.append(ep)
+        TRAIN_ACC.append(train_acc)
+        TRAIN_LOSS.append(train_loss)
+        TEST_ACC.append(test_acc)
+        TEST_LOSS.append(test_loss)
+        TIMES.append(cur_time)
+
+        np.savez(saved_filename, epoch=EP, train_loss=TRAIN_LOSS, train_acc= TRAIN_ACC, test_loss=TEST_LOSS, test_acc=TEST_ACC, time=TIMES)
 
 def test():
     model.eval()  # set evaluation mode
@@ -125,8 +138,7 @@ def test():
 
     test_loss /= len(testset_loader.dataset)
     acc = correct / len(testset_loader.dataset)
-    trainAcc.append(acc)
-    trainLoss.append(test_loss)
+
     accuracy = correct / len(testset_loader.dataset)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(testset_loader.dataset),
@@ -147,15 +159,3 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 
 #load_checkpoint("q72checkpoint.cp", model, optimizer)
 train(200)
-save_checkpoint(model, optimizer)
-
-import matplotlib.pyplot as plt
-fig = plt.figure()
-plt.subplot(121)
-plt.plot(trainAcc, label="Testset Accuracy")
-plt.title("Training Accuracy")
-plt.subplot(122)
-plt.plot(trainLoss, label="Testset Loss")
-plt.title("Training Loss")
-plt.show()
-fig.savefig(fname=saved_filename+".eps")
