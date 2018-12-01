@@ -12,7 +12,7 @@ from time import time
 
 
 batch_size = 32
-saved_filename = "resnet18.npz"
+saved_filename = "resnet50.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -56,7 +56,7 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print(device)
 
 
-model = models.resnet18(pretrained=True)
+model = models.resnet50(pretrained=True)
 model = Model(model).to(device)
 
 print(len(trainset_loader))
