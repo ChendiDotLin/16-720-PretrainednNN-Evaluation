@@ -8,10 +8,11 @@ import torchvision.models as models
 from torch.utils.data import Dataset, DataLoader
 import numpy as np
 import os
+from time import time
 
 
 batch_size = 32
-
+saved_filename = "resnet18.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -66,10 +67,14 @@ optimizer = optim.SGD(model.parameters(), lr=0.00005, momentum=0.7)
 
 trainLoss = []
 trainAcc = []
-def train(epoch, log_interval=1):
-    model.train()  # set training mode
+
+start_time = time()
+
+def train(epoch, log_interval=5):
     iteration = 0
+    start_time = time()
     for ep in range(epoch):
+        model.train()
         for batch_idx, (data, target) in enumerate(trainset_loader):
             data, target = data.to(device), target.to(device)
 
@@ -81,14 +86,30 @@ def train(epoch, log_interval=1):
             loss.backward()
             optimizer.step()
             if iteration % log_interval == 0:
-                trainLoss.append(loss.item())
-                model.eval()
-
                 print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
                     ep, batch_idx * len(data), len(trainset_loader.dataset),
                     100. * batch_idx / len(trainset_loader), loss.item()))
             iteration += 1
-        test()
+        # evaluate once
+        model.eval()
+        correct = 0
+        train_loss = 0
+        with torch.no_grad():
+            for data, target in trainset_loader:
+                data, target = data.to(device), target.to(device)
+                output = model(data)
+                train_loss += F.nll_loss(output, target, size_average=False).item()  # sum up batch loss
+                pred = output.max(1, keepdim=True)[1]  # get the index of the max log-probability
+                correct += pred.eq(target.view_as(pred)).sum().item()
+        train_acc = correct / len(trainset_loader.dataset)
+
+        print('\nTrain set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
+            train_loss, correct, len(trainset_loader.dataset),
+            100. * train_acc))
+
+        test_loss, test_acc = test()
+        cur_time = time() - start_time
+        np.savez(saved_filename, epoch=ep, train_loss=train_loss, train_acc= train_acc, test_loss=test_loss, test_acc=test_acc, time=cur_time)
 
 def test():
     model.eval()  # set evaluation mode
@@ -106,9 +127,11 @@ def test():
     acc = correct / len(testset_loader.dataset)
     trainAcc.append(acc)
     trainLoss.append(test_loss)
+    accuracy = correct / len(testset_loader.dataset)
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(testset_loader.dataset),
-        100. * correct / len(testset_loader.dataset)))
+        100. * accuracy))
+    return test_loss, accuracy
 
 def save_checkpoint(model, optimizer, checkpoint_path="q72checkpoint.cp"):
     state = {'state_dict': model.state_dict(),
@@ -123,16 +146,16 @@ def load_checkpoint(checkpoint_path, model, optimizer):
     print('model loaded from %s' % checkpoint_path)
 
 #load_checkpoint("q72checkpoint.cp", model, optimizer)
-train(100)
+train(200)
 save_checkpoint(model, optimizer)
 
 import matplotlib.pyplot as plt
 fig = plt.figure()
 plt.subplot(121)
-plt.plot(trainAcc, label="Training Accuracy")
+plt.plot(trainAcc, label="Testset Accuracy")
 plt.title("Training Accuracy")
 plt.subplot(122)
-plt.plot(trainLoss, label="Training Loss")
+plt.plot(trainLoss, label="Testset Loss")
 plt.title("Training Loss")
 plt.show()
-fig.savefig(fname="../report/fig/q721.eps")
+fig.savefig(fname=saved_filename+".eps")
