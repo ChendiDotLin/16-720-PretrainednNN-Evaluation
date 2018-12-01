@@ -2,79 +2,32 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
-import torchvision
+import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import torchvision.models as models
 from torch.utils.data import Dataset, DataLoader
-import glob
-import os.path as osp
 import numpy as np
-from PIL import Image
+import os
 
 
-class FLOWER(Dataset):
-    """
-    A customized data loader for MNIST.
-    """
+batch_size = 32
 
-    def __init__(self, train=True):
-        self.images = None
-        self.labels = None
-        self.filenames = []
-        if train:
-            self.root = '../data/oxford-flowers17/train'
-        else:
-            self.root = '../data/oxford-flowers17/test'
-        self.transform = transforms.ToTensor()
 
-        # read filenames
-        for i in range(10):
-            filenames = glob.glob(osp.join(self.root, str(i), '*.jpg'))
-            for fn in filenames:
-                self.filenames.append((fn, i))  # (filename, label) pair
+counter = 0
+data_transform = transforms.Compose([
+        transforms.RandomSizedCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                             std=[0.229, 0.224, 0.225])
+    ])
 
-        # if preload dataset into memory
-        self._preload()
+trainset_loader = datasets.ImageFolder(root='../data/oxford-flowers17/train', transform=data_transform)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
-        self.len = len(self.filenames)
 
-    def _preload(self):
-        """
-        Preload dataset to memory
-        """
-        self.labels = []
-        self.images = []
-        for image_fn, label in self.filenames:
-            # load images
-            image = Image.open(image_fn)
-            # avoid too many opened files bug
-            self.images.append(image.copy())
-            image.close()
-            self.labels.append(label)
-
-    def __getitem__(self, index):
-
-        image = self.images[index]
-        image = image.resize((224,224))
-        label = self.labels[index]
-        image = self.transform(image)
-        # return image and label
-        return image, label
-
-    def __len__(self):
-        return self.len
-
-# Create the MNIST dataset.
-# transforms.ToTensor() automatically converts PIL images to
-# torch tensors with range [0, 1]
-trainset = FLOWER(train=True)
-# Use the torch dataloader to iterate through the dataset
-trainset_loader = DataLoader(trainset, batch_size=32, shuffle=True, num_workers=1)
-
-# load the testset
-testset = FLOWER(train=False)
-# Use the torch dataloader to iterate through the dataset
-testset_loader = DataLoader(testset, batch_size=1000, shuffle=False, num_workers=1)
+testset_loader = datasets.ImageFolder(root='../data/oxford-flowers17/train', transform=data_transform)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
 
 class Classifier(nn.Module):
@@ -90,14 +43,11 @@ class Classifier(nn.Module):
 class Model(nn.Module):
     def __init__(self, vgg):
         super(Model, self).__init__()
-        self.features = nn.Sequential(
-            # stop at conv4
-            *list(vgg.features.children())[:],
-	        *list(vgg.classifier.children())[:],
-            Classifier()
-        )
+        self.model = vgg
+        self.classifier17 = Classifier()
     def forward(self, x):
-        x = self.features(x)
+        x = self.model.forward(x)
+        x = self.classifier17.forward(x)
         return x
 
 use_cuda = torch.cuda.is_available()
@@ -105,13 +55,12 @@ device = torch.device("cuda" if use_cuda else "cpu")
 print(device)
 
 
-model = models.squeezenet1_1(pretrained=True)
+model = models.resnet18(pretrained=True)
+print(model)
 model = Model(model).to(device)
 
-
-
-print(len(trainset))
-print(len(testset))
+print(len(trainset_loader))
+print(len(testset_loader))
 
 optimizer = optim.SGD(model.parameters(), lr=0.00005, momentum=0.7)
 
