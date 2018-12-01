@@ -22,12 +22,12 @@ data_transform = transforms.Compose([
                              std=[0.229, 0.224, 0.225])
     ])
 
-trainset_loader = datasets.ImageFolder(root='../data/oxford-flowers17/train', transform=data_transform)
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
+trainset = datasets.ImageFolder(root='data/oxford-flowers17/train', transform=data_transform)
+trainset_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
 
-testset_loader = datasets.ImageFolder(root='../data/oxford-flowers17/train', transform=data_transform)
-test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
+testset = datasets.ImageFolder(root='data/oxford-flowers17/test', transform=data_transform)
+testset_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
 
 class Classifier(nn.Module):
