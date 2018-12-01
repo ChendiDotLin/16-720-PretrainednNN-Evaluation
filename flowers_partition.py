@@ -5,13 +5,13 @@ import scipy.io
 import shutil
 
 if len(sys.argv) > 1:
-    output_folder = '../data/oxford-flowers17'
+    output_folder = 'data/oxford-flowers17'
     splits = scipy.io.loadmat('datasplits.mat')
     maps = [('trn2','train'),('val2','val'),('tst2','test')]
     labels = {'labels': (np.arange(1360,dtype=np.int) )//80 }
     base_str = "image_{:04d}.jpg"
 else:
-    output_folder = '../data/oxford-flowers102'
+    output_folder = 'data/oxford-flowers102'
     splits = scipy.io.loadmat('setid.mat')
     labels = scipy.io.loadmat('imagelabels.mat')
     maps = [('trn','train'),('val','val'),('tst','test')]
