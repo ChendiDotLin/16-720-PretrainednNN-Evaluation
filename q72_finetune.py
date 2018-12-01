@@ -23,18 +23,18 @@ data_transform = transforms.Compose([
                              std=[0.229, 0.224, 0.225])
     ])
 
-trainset = datasets.ImageFolder(root='data/oxford-flowers17/train', transform=data_transform)
+trainset = datasets.ImageFolder(root='data/oxford-flowers102/train', transform=data_transform)
 trainset_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
 
-testset = datasets.ImageFolder(root='data/oxford-flowers17/test', transform=data_transform)
+testset = datasets.ImageFolder(root='data/oxford-flowers102/test', transform=data_transform)
 testset_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
 
 
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
-        self.fc = nn.Linear(1000, 17)
+        self.fc = nn.Linear(1000, 102)
 
     def forward(self, x):
         x = x.view(-1, 1000)
@@ -57,7 +57,6 @@ print(device)
 
 
 model = models.resnet18(pretrained=True)
-print(model)
 model = Model(model).to(device)
 
 print(len(trainset_loader))
