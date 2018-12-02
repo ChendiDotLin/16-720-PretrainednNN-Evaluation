@@ -158,3 +158,4 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 
 #load_checkpoint("q72checkpoint.cp", model, optimizer)
 train(200)
+save_checkpoint(model, optimizer, checkpoint_path="checkpoints/" + saved_filename + ".checkpoint")

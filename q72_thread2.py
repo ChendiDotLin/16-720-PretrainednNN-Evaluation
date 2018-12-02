@@ -12,7 +12,7 @@ from time import time
 
 
 batch_size = 32
-saved_filename = "alexnet.npz"
+saved_filename = "squeezenet.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -52,11 +52,11 @@ class Model(nn.Module):
         return x
 
 use_cuda = torch.cuda.is_available()
-device = torch.device("cuda:1" if use_cuda else "cpu")
+device = torch.device("cuda:2" if use_cuda else "cpu")
 print(device)
 
 
-model = models.alexnet(pretrained=True)
+model = models.squeezenet1_1(pretrained=True)
 model = Model(model).to(device)
 
 print(len(trainset_loader))
@@ -158,3 +158,4 @@ def load_checkpoint(checkpoint_path, model, optimizer):
 
 #load_checkpoint("q72checkpoint.cp", model, optimizer)
 train(200)
+save_checkpoint(model, optimizer, checkpoint_path="checkpoints/" + saved_filename + ".checkpoint")
