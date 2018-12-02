@@ -12,7 +12,7 @@ from time import time
 
 
 batch_size = 32
-saved_filename = "alexnet.npz"
+saved_filename = "vgg19_bn.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -56,7 +56,7 @@ device = torch.device("cuda:1" if use_cuda else "cpu")
 print(device)
 
 
-model = models.alexnet(pretrained=True)
+model = models.vgg19_bn(pretrained=True)
 model = Model(model).to(device)
 
 print(len(trainset_loader))

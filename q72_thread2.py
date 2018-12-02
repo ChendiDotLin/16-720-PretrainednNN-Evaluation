@@ -12,7 +12,7 @@ from time import time
 
 
 batch_size = 32
-saved_filename = "squeezenet.npz"
+saved_filename = "densenet161.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -56,7 +56,7 @@ device = torch.device("cuda:2" if use_cuda else "cpu")
 print(device)
 
 
-model = models.squeezenet1_1(pretrained=True)
+model = models.densenet161(pretrained=True)
 model = Model(model).to(device)
 
 print(len(trainset_loader))
