@@ -1,9 +1,13 @@
 % function[] = bar_visualize()
 clc; clear all; close all;
 resnet = load('resnet.mat');
+alexnet = load('alexnet.mat');
+squeezenet = load('squeezenet.mat');
 nets = {};
 nets{end+1} = resnet;
-names = {'resnet'};
+nets{end+1} = alexnet;
+nets{end+1} = squeezenet;
+names = {'resnet','alexnet','squeezenet'};
 num_nets = length(names);
 epochs = length(resnet.epoch);
 % figure();
@@ -16,28 +20,27 @@ for i = 1:epochs
     for j = 1:num_nets
         net = nets{j};
         train_loss_data(j) =net.train_loss(i);
-        %         train_acc_data(j) = net.train_acc(i);
-        %         train_acc_data(j) = net.train_acc(i);
-        %         test_loss_data(j) = net.test_loss(i);
-        %         test_acc_data(j) = net.test_acc(i);
-        %         time_data(j) = net.time(i);
+                train_acc_data(j) = net.train_acc(i);
+                test_loss_data(j) = net.test_loss(i);
+                test_acc_data(j) = net.test_acc(i);
+                time_data(j) = net.time(i);
         
         
     end
     [data,index] = sort(train_loss_data);
-%     [data,index] = sort(train_acc_data);
-%     [data,index] = sort(test_loss_data);
+    [data,index] = sort(train_acc_data);
+    [data,index] = sort(test_loss_data);
 %     [data,index] = sort(test_acc_data);
 %     [data,index] = sort(time_data);
 
     barh(data);    
     set(gca,'yticklabel',names(index))
     set(gca,'XLim',[0,5])
-    title('train loss comparison')
+    title('test loss comparison')
     pause(0.01)
     M(i) = getframe(gcf);
 end
-v = VideoWriter('train_loss_comparison.avi');
+v = VideoWriter('test_loss_comparison.avi');
 open(v);
 writeVideo(v,M);
 close(v);
