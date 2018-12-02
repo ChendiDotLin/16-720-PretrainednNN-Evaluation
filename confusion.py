@@ -12,7 +12,6 @@ from time import time
 
 
 batch_size = 32
-saved_filename = "vgg19_bn.npz"
 
 counter = 0
 data_transform = transforms.Compose([
@@ -22,10 +21,6 @@ data_transform = transforms.Compose([
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                              std=[0.229, 0.224, 0.225])
     ])
-
-trainset = datasets.ImageFolder(root='data/oxford-flowers102/train', transform=data_transform)
-trainset_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-
 
 testset = datasets.ImageFolder(root='data/oxford-flowers102/test', transform=data_transform)
 testset_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
@@ -59,12 +54,9 @@ print(device)
 model = models.squeezenet1_1(pretrained=False)
 model = Model(model).to(device)
 
-print(len(trainset_loader))
 print(len(testset_loader))
 
 optimizer = optim.SGD(model.parameters(), lr=0.00005, momentum=0.7)
-
-start_time = time()
 
 def load_checkpoint(checkpoint_path, model, optimizer):
     state = torch.load(checkpoint_path)
@@ -83,7 +75,4 @@ with torch.no_grad():
         data, target = data.to(device), target.to(device)
         output = model(data)
         pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
-        print(pred.size)
-
-
-
+        print(pred.size(), target.size())
