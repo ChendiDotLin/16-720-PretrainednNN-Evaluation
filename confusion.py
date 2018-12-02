@@ -75,4 +75,6 @@ with torch.no_grad():
         data, target = data.to(device), target.to(device)
         output = model(data)
         pred = output.max(1, keepdim=True)[1] # get the index of the max log-probability
-        print(pred.size(), target.size())
+        for i in pred.size()[0]:
+            confusion[target[i], pred[i, 0]] += 1
+np.save("confusion.npy", confusion)
