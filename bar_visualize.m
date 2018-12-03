@@ -3,11 +3,15 @@ clc; clear all; close all;
 resnet = load('resnet.mat');
 alexnet = load('alexnet.mat');
 squeezenet = load('squeezenet.mat');
+vggnet = load('vggnet.mat');
+densenet = load('densenet.mat');
 nets = {};
 nets{end+1} = resnet;
 nets{end+1} = alexnet;
 nets{end+1} = squeezenet;
-names = {'resnet','alexnet','squeezenet'};
+nets{end+1} = vggnet;
+nets{end+1} = densenet;
+names = {'res net','alex net','squeeze net','vgg 19','dense net'};
 num_nets = length(names);
 epochs = length(resnet.epoch);
 % figure();
@@ -30,17 +34,17 @@ for i = 1:epochs
     [data,index] = sort(train_loss_data);
     [data,index] = sort(train_acc_data);
     [data,index] = sort(test_loss_data);
-%     [data,index] = sort(test_acc_data);
-%     [data,index] = sort(time_data);
-
+    [data,index] = sort(test_acc_data);
+    [data,index] = sort(time_data);
+comp = 'time comparison';
     barh(data);    
     set(gca,'yticklabel',names(index))
-    set(gca,'XLim',[0,5])
-    title('test loss comparison')
+%     set(gca,'XLim',[0,1])
+    title(comp)
     pause(0.01)
     M(i) = getframe(gcf);
 end
-v = VideoWriter('test_loss_comparison.avi');
+v = VideoWriter(strcat(comp,'.avi'));
 open(v);
 writeVideo(v,M);
 close(v);
